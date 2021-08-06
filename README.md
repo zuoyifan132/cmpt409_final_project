@@ -1,44 +1,122 @@
-# Quantum TSP tutorial
+# <center>Quantum TSP<center/>
 
-## Introduction
+### Introduction
 
-This repository contains code with tutorials on how to approach optimization problems using quantum computing.
-I used Travelling Salesman Problem for this tutorials, though the idea is, that after finishing it, you should be able to implement any similar optimization problem.
+---
 
-## Is this tutorial right for you?
+- TSP(Travelling Salesman Problem):
+  - Given a list of cities and the distances between each pair of cities, what is the shortest
 
-I have created this tutorial with specific audience in mind. It means people, who:
-- are curious about quantum computing,
-- don't have any background in quantum physics,
-- have some programming experience,
-- really want to learn this topic.
+    possible route that visits each city exactly once and returns to the origin city?”(wiki)
 
-The last point is the most important. My goal here is not to show you how to solve TSP with a quantum computer. My goal is to teach you how to solve optimization problems with QC, make sure your solution works and how to improve it. To do all that you need to put some effort into it and spend a couple of hours trying to understand all the concepts. But this is on purpose - this is the best way I know to actually learn the topic and integrate this knowledge.
+  - It is an NP-hard problem in combinatorial optimization.
 
-I did my best to provide you with all the necessary knowledge, code examples etc. If you think something is not clear, missing, you have a better idea - well, I encourage you to do one of these two things:
+  - In our project, the distance between cities are symmetric.
 
-- Do a pull request to this repository
-- Write me an e-mail at michal.stechly@gmail.com
+  - In our project, the first and last cities are not defined.
 
-I don't want to say that it is super advanced and hard - as stated earlier, you don't have to be a quantum computing expert. 
+- Classical VS Quantum:
 
-## Dependencies
+- - Classical brute force: number of possible solutions is growing exponentially
 
-In this tutorial I used pyquil 2.2.1 and grove 1.7.0 . API of these librares may change in next versions - let me know if something is broken so I can fix it :)
+    with each additional city.
 
-## About the author
+  - Quantum TSP: polynomial speed up.
 
-My name is Michał and I work as Quantum Software Engineer at [Zapata Computing](www.zapatacomputing.com). 
-You can find more materials onmy blog [Musty thoughts](http://www.mustythoughts.com).
+### Prerequisites
 
-If you want to contact me - feel free to do so: michal.stechy@gmail.com .
+---
 
-## Unitary Fund
+- Forest SKD:
+  - In order to connect to Quantum Virtual Machine.
+- Pyquil:
+  -  Use pyquil.api, pyquil.paulis, pyquil.gates.
+- Grove:
+  -  QAOA: Quantum approximate optimization algorithm.
+  - QAOA is an algorithm for solving a broad range of optimization problems using NISQ (Noisy Intermediate-Scale Quantum) devices.
 
-This project is supported by [Unitary Fund](http://unitary.fund). If you have an idea for an open-source project for near term hybrid quantum-classical programming, this is a good place for you!
+### QAOA
 
-[![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=for-the-badge)](http://unitary.fund)
+---
 
-## Thanks
+- QAOA:
+  - An algorithm that combine quantum part and classical part.
+  - The quantum part prepare the quantum state and measure it , repeat the process.
+  - The classical part use Nelder-Mead algorithm find the most improved angles iteratively.
+- betas, gammas = QAOA_inst.get_angles()
+  - Beta and gammas are the angles that we got.
+- most_common_result, _ = QAOA_inst.get_string(betas, gammas, samples=50000)
+  - By knowing the angles, we can get the most common results. Since the result is probabilistic, we should find the most common result.
 
-Thanks to Jacek Łysiak and Katerina Gratsea for feedback!
+### Problem representation
+
+---
+
+- Graph:
+
+  - For example, we want to present 3 cities: [(1,2), (3,4), (5,7)]
+
+  - The distance matrix is:
+
+    [[0, 2.82842712, 6.40312424] 
+
+    [2.82842712 0. 3.60555128] 
+
+    [6.40312424 3.60555128 0. ]]
+
+  - Cost function is the sum of the cost we want to minimize.
+
+### Encode Problem
+
+---
+
+- Points representation:
+  - [0,1,2,3 ] means city 0 to 1 to ... 3
+- Time-city matrix:
+  - row represents time slots,
+  - columns represent cities
+  - Point representation and time-city matrix are interchangeable.
+
+### Solving TSP
+
+---
+
+- Naïve Approach
+
+  - Start with 3 cities, calculate the best distance(fig 1.1)
+
+  - Then go for more cities...
+
+  - Use *ForestTSPSolverNaive()* to solve the whole problem.
+
+  - Naive solution: [0,1,2,2]
+
+    <img src="/Users/sakazuho/Desktop/大四/third semester/cmpt409/cmpt409_final_project/Picture1.png" alt="Picture1" style="zoom:48%;" />
+
+- Naïve Approach Contd.
+
+  -  The output doesn’t make sense(fig 2.1)
+
+  -  One big reason is that *ForestTSPSolverNaive()* doesn’t have enough constraints. – Adding penalties to the solver
+
+    <img src="/Users/sakazuho/Desktop/大四/third semester/cmpt409/cmpt409_final_project/Picture2.png" alt="Picture2" style="zoom:48%;" />
+
+- Improved naïve approach:
+
+  - Create penalty matrices - add huge penalty for the states we don't want.
+  - Example of 3 cities
+    - At t = 0, only possible states are 100,010,001. So we penalize other states by creating an operator matrix(fig 3.1), such operator ignores 100,010,001 and 111 and penalizes the rest states.
+    - To penalize state 111, it requires a little bit of linear algebra.
+    - After we combine those operators to the final operator, we can implement it in QAOA.
+
+- Summary:
+
+  - Naïve approach summary:
+    - QAOA - An algorithm that combine quantum part and classical part.
+    - Initially not good enough to solve TSP due to the missing of constraints.
+    - Encoding constraints and costs in QAOA to solve TSP.
+  - Possible improvements:
+    - Tuned parameters
+    - More compact encoding
+    - Check for changes dynamically
+
