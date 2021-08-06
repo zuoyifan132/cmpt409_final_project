@@ -1,0 +1,17 @@
+Quantum TSP Group Contribution
+
+
+Yifan Zuo:
+forest_tsp_solver_naive.py for the naive approach.
+
+JiaQing Hu:
+forest_tsp_solver_improved.py for the improved with constraint approach.
+
+Mingzhen Mou:
+analysis.py for turning the QAOA variables.
+
+Jiangsheng Guo:
+plots.py coding for presenting the result plot.
+
+Zhongliang Wang:
+utilities.py some utility functions such that our solver will used.
